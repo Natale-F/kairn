@@ -48,7 +48,7 @@ Or use the script:
 
 Available models: `mistral-large`, `mistral-medium`,`mistral-small`
 
-## 🛠️ Development
+## Development
 
 ```bash
 # View logs
