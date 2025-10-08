@@ -47,7 +47,7 @@ EOF
 
 2. **Start the application**
 ```bash
-./start-docker.sh
+./start-chatbot.sh
 ```
 
 Or manually:

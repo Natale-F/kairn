@@ -7,7 +7,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.mistral import MistralModel
 
 from config import LLM_PROVIDER, MISTRAL_API_KEY, MODEL_MAP
-from prompts import get_system_prompt
+from prompts import DEFAULT_SYSTEM_PROMPT
 
 logger = structlog.get_logger(__name__)
 
@@ -22,7 +22,7 @@ class LLMService:
 
     def __init__(self, provider: str = None, system_prompt: str = None):
         self.provider = provider or LLM_PROVIDER
-        self.system_prompt = system_prompt or get_system_prompt("default")
+        self.system_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
         self._validate_provider()
         self._agents = {}  # Cache agents by model
         logger.info("LLMService initialized", provider=self.provider)
