@@ -73,7 +73,7 @@ docker compose up -d --build
 - **Python 3.12** with **FastAPI** framework
 - OpenAI-compatible API for seamless integration
 - Direct integration with Mistral AI API
-- Models: `mistral-large`, `mistral-medium`, `mistral-small`
+- Models: `mistral-large`, `mistral-medium`
 
 ### Frontend
 - **Open WebUI** - Feature-rich, self-hosted AI interface

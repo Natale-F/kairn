@@ -50,11 +50,7 @@ class LLMService:
         if cache_key not in self._agents:
             logger.debug("Creating new agent", provider=self.provider, model=model_name)
             model = self._get_model_instance(model_name)
-            self._agents[cache_key] = Agent(
-                model, 
-                system_prompt=self.system_prompt,
-                retries=2
-            )
+            self._agents[cache_key] = Agent(model, system_prompt=self.system_prompt, retries=2)
         else:
             logger.debug("Using cached agent", provider=self.provider, model=model_name)
 

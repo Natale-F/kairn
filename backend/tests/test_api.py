@@ -71,7 +71,6 @@ class TestModelsEndpoint:
         model_ids = [m["id"] for m in data["data"]]
         assert "mistral-large" in model_ids
         assert "mistral-medium" in model_ids
-        assert "mistral-small" in model_ids
 
 
 class TestChatCompletionsEndpoint:
@@ -80,7 +79,7 @@ class TestChatCompletionsEndpoint:
     def test_chat_streaming(self, client, mock_env):
         """Test POST /v1/chat/completions with streaming"""
         request_data = {
-            "model": "mistral-small",
+            "model": "mistral-large",
             "messages": [{"role": "user", "content": "How are you?"}],
             "stream": True,
         }
@@ -122,7 +121,7 @@ class TestChatCompletionsEndpoint:
     def test_chat_non_streaming(self, client, mock_env):
         """Test POST /v1/chat/completions without streaming"""
         request_data = {
-            "model": "mistral-small",
+            "model": "mistral-large",
             "messages": [{"role": "user", "content": "Say hello"}],
             "stream": False,
         }
@@ -137,7 +136,7 @@ class TestChatCompletionsEndpoint:
         assert "object" in data
         assert data["object"] == "chat.completion"
         assert "model" in data
-        assert data["model"] == "mistral-small"
+        assert data["model"] == "mistral-large"
         assert "choices" in data
         assert len(data["choices"]) > 0
 
@@ -161,7 +160,7 @@ class TestChatCompletionsEndpoint:
     def test_chat_alternative_endpoint(self, client, mock_env):
         """Test POST /chat/completions also works (without /v1 prefix)"""
         request_data = {
-            "model": "mistral-small",
+            "model": "mistral-large",
             "messages": [{"role": "user", "content": "Hello"}],
             "stream": False,
         }

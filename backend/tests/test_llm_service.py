@@ -63,7 +63,7 @@ class TestLLMServiceModelManagement:
 
             agent1 = service._get_agent("mistral-large")
             agent2 = service._get_agent("mistral-large")
-            agent3 = service._get_agent("mistral-small")
+            agent3 = service._get_agent("mistral-medium")
 
             # Same model should return cached agent
             assert agent1 is agent2
@@ -105,7 +105,7 @@ class TestLLMServiceGeneration:
         service = LLMService(provider="mistral")
 
         result = await service.generate_completion(
-            messages=sample_chat_messages, model="mistral-small", temperature=0.5, max_tokens=2000
+            messages=sample_chat_messages, model="mistral-large", temperature=0.5, max_tokens=2000
         )
 
         assert result == "Mocked LLM response"

@@ -36,8 +36,6 @@ MODEL_MAP = {
     "mistral-large:latest": "mistral-large-latest",
     "mistral-medium": "mistral-medium-latest",
     "mistral-medium:latest": "mistral-medium-latest",
-    "mistral-small": "mistral-small-latest",
-    "mistral-small:latest": "mistral-small-latest",
 }
 
 # Default models exposed to frontend (Ollama format)
