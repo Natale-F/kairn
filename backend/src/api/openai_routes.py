@@ -137,3 +137,4 @@ async def chat_completions(request: ChatRequest):
             yield f"data: {json.dumps(error_data)}\n\n"
 
     return StreamingResponse(openai_stream(), media_type="text/event-stream")
+
