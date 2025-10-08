@@ -1,95 +1,59 @@
 #!/bin/bash
 
-# Script de démarrage Docker Compose pour le chatbot French Sovereign
-
 set -e
 
-echo "🚀 Démarrage du chatbot French Sovereign avec Docker Compose"
+echo "🚀 Starting Kairn - European Sovereign Cloud Assistant"
 echo ""
 
-# Vérifier si Docker est installé
+# Check Docker installation
 if ! command -v docker &> /dev/null; then
-    echo "❌ Docker n'est pas installé. Installez Docker : https://docs.docker.com/get-docker/"
+    echo "❌ Error: Docker is not installed"
+    echo "   Install Docker: https://docs.docker.com/get-docker/"
     exit 1
 fi
 
-# Vérifier si Docker Compose est installé
+# Check Docker Compose installation
 if ! command -v docker compose &> /dev/null && ! docker compose version &> /dev/null; then
-    echo "❌ Docker Compose n'est pas installé. Installez Docker Compose : https://docs.docker.com/compose/install/"
+    echo "❌ Error: Docker Compose is not installed"
+    echo "   Install Docker Compose: https://docs.docker.com/compose/install/"
     exit 1
 fi
 
-# Vérifier si le fichier .env existe
+# Check .env file exists
 if [ ! -f .env ]; then
-    echo "⚠️  Fichier .env non trouvé !"
+    echo "❌ Error: .env file not found"
     echo ""
-    echo "Création d'un fichier .env de base..."
-    cat > .env << 'EOF'
-# ============================================================================
-# MISTRAL API CONFIGURATION (Required)
-# ============================================================================
-# Your Mistral AI API key - Get it from https://console.mistral.ai/
-MISTRAL_API_KEY=your_mistral_api_key_here
-
-# ============================================================================
-# BACKEND CONFIGURATION (Optional)
-# ============================================================================
-# Frontend URL for CORS (automatically set in Docker)
-FRONTEND_URL=http://localhost:3000
-EOF
+    echo "Create a .env file with your Mistral API key:"
+    echo "   MISTRAL_API_KEY=your_api_key_here"
     echo ""
-    echo "📝 Fichier .env créé. MODIFIEZ-LE pour ajouter votre clé API Mistral !"
-    echo ""
-    echo "   nano .env"
-    echo "   # ou"
-    echo "   vim .env"
-    echo ""
-    read -p "Appuyez sur Entrée une fois la clé API configurée..."
+    echo "Get your API key from: https://console.mistral.ai/"
+    exit 1
 fi
 
-# Vérifier si la clé API est configurée
-if grep -q "your_mistral_api_key_here" .env; then
-    echo ""
-    echo "⚠️  ATTENTION : Vous devez remplacer 'your_mistral_api_key_here' par votre vraie clé API Mistral !"
-    echo ""
-    echo "   Obtenez une clé sur : https://console.mistral.ai/"
-    echo ""
-    read -p "Continuer quand même ? (y/N) " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
+# Check API key is configured
+if grep -q "your_mistral_api_key_here" .env || grep -q "your_api_key_here" .env; then
+    echo "❌ Error: MISTRAL_API_KEY not configured in .env file"
+    echo "   Get your API key from: https://console.mistral.ai/"
+    exit 1
 fi
 
-echo ""
-echo "🏗️  Construction des images Docker..."
+echo "🏗️  Building Docker images..."
 docker compose build
 
 echo ""
-echo "🚀 Démarrage des services..."
+echo "🚀 Starting services..."
 docker compose up -d
 
 echo ""
-echo "⏳ Attente du démarrage complet..."
-sleep 5
-
-# Vérifier le statut
+echo "✅ Services started successfully!"
 echo ""
-echo "📊 Statut des services :"
-docker compose ps
-
+echo "📍 Access:"
+echo "   - Frontend: http://localhost:3000"
+echo "   - Backend:  http://localhost:8000"
+echo "   - API Docs: http://localhost:8000/docs"
 echo ""
-echo "✅ Démarrage terminé !"
-echo ""
-echo "📍 Accès aux services :"
-echo "   - Frontend : http://localhost:3000"
-echo "   - Backend  : http://localhost:8000"
-echo "   - API Docs : http://localhost:8000/docs"
-echo ""
-echo "📝 Commandes utiles :"
-echo "   - Voir les logs     : docker compose logs -f"
-echo "   - Arrêter           : docker compose down"
-echo "   - Redémarrer        : docker compose restart"
-echo ""
-echo "💡 Pour plus d'infos : cat README_DOCKER.md"
+echo "📝 Commands:"
+echo "   - View logs: docker compose logs -f"
+echo "   - Stop:      docker compose down"
+echo "   - Restart:   docker compose restart"
 echo ""

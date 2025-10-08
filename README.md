@@ -1,72 +1,105 @@
-# Kairn – The European Sovereign Cloud Assistant 🇪🇺
+# Kairn – European Sovereign Cloud Assistant 🇪🇺
 
-**Kairn** is an open-source AI assistant designed to **guide organizations in their transition toward sovereign and ethical cloud infrastructures**.  
-Powered by **Mistral AI** (France) and deployable on **European providers such as OVHcloud, Infomaniak or Scaleway**, Kairn helps teams **understand, plan, and migrate** their workloads to **independent, privacy-focused, and open environments**.
+**Kairn** is an open-source AI chatbot that demonstrates how European technologies can power intelligent applications without relying on U.S. cloud infrastructure.
 
-Kairn promotes a vision of **transparent, self-hostable, and open technologies**—because sovereignty and innovation must go hand in hand.
+Built with **Mistral AI** (France 🇫🇷) and designed to run on **European cloud providers** (OVHcloud, Scaleway, Infomaniak), this project showcases a modern, privacy-focused approach to AI deployment.
+
+**Tech Stack:** Python 3.12 · FastAPI · Next.js · Docker · Mistral AI · PostgreSQL with pgvector(scale)
 
 ---
 
-## Why Kairn
+## Why This Project
 
-Most AI and cloud tools today rely on U.S.-based infrastructures.  
-**Kairn** proves that European technologies can deliver the same performance and reliability—without sacrificing independence or openness.  
-It’s built for **organizations seeking to regain control of their data and infrastructure**, while contributing to a **more open, sustainable, and sovereign digital ecosystem**.
+Most AI tools today depend on U.S.-based infrastructure. **Kairn** proves that European technologies can deliver the same capabilities while maintaining:
+
+- **Data Sovereignty** – Full control over data location and processing
+- **Privacy-First** – No third-party data sharing or tracking
+- **Open Source** – Transparent, auditable, self-hostable
+- **European Tech** – Supporting independent, sustainable digital ecosystems
+
+Perfect for organizations exploring sovereign cloud strategies or developers interested in privacy-focused AI architectures.
+
+---
 
 ## Quick Start
 
-### 1. Setup Environment
+### Prerequisites
+- Docker & Docker Compose
+- Mistral AI API key ([get one here](https://console.mistral.ai/))
 
-Create a `.env` file:
+### Setup & Launch
+
+1. **Create environment file**
 ```bash
-MISTRAL_API_KEY=your_mistral_api_key_here
+echo "MISTRAL_API_KEY=your_actual_api_key_here" > .env
 ```
 
-Get your API key from [Mistral Console](https://console.mistral.ai/)
-
-### 2. Launch
-
-```bash
-docker-compose up -d --build
-```
-
-Or use the script:
+2. **Start the application**
 ```bash
 ./start-docker.sh
 ```
 
-### 3. Access
+Or manually:
+```bash
+docker compose up -d --build
+```
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
+3. **Access the application**
+- 💬 **Chat Interface:** http://localhost:3000
+- 🔧 **API Backend:** http://localhost:8000
+- 📚 **API Documentation:** http://localhost:8000/docs
 
-## What's Inside
+---
 
-- **Backend** (Python 3.12 + FastAPI) - Ollama-compatible API for Mistral AI
-- **Frontend** (Next.js) - Modern chat UI based on [nextjs-ollama-llm-ui](https://github.com/jakobhoeg/nextjs-ollama-llm-ui)
+## 🏗️ Architecture
 
-Available models: `mistral-large`, `mistral-medium`,`mistral-small`
+### Backend
+- **Python 3.12** with **FastAPI** framework
+- Ollama-compatible API for seamless integration
+- Direct integration with Mistral AI API
+- Models: `mistral-large`, `mistral-medium`, `mistral-small`
+
+### Frontend
+- **Next.js** with modern React patterns
+- Real-time chat interface
+- Based on [nextjs-ollama-llm-ui](https://github.com/jakobhoeg/nextjs-ollama-llm-ui)
+- Responsive design with Tailwind CSS
+
+### Infrastructure
+- Fully containerized with Docker
+- Production-ready configuration
+- Easily deployable on any European cloud provider
+
+---
 
 ## Development
 
 ```bash
-# View logs
-docker-compose logs -f
+# View real-time logs
+docker compose logs -f
 
 # Restart services
-docker-compose restart
+docker compose restart
 
-# Stop services
-docker-compose down
+# Stop all services
+docker compose down
 
-# Rebuild after changes
-docker-compose up -d --build
+# Rebuild after code changes
+docker compose up -d --build
 ```
 
-## Sovereignty
+---
 
-- French LLM provider (Mistral AI - Paris)
-- No US dependencies
-- Self-hostable on French infrastructure
-- Complete data privacy
+## European Sovereignty Features
+
+- ✅ **French AI Provider** – Mistral AI (Paris, France)
+- ✅ **No US Dependencies** – Complete operational independence
+- ✅ **Self-Hostable** – Deploy on your own infrastructure
+- ✅ **GDPR Compliant** – Built with European privacy standards
+- ✅ **Open Source** – Full transparency and auditability
+
+---
+
+## License
+
+This project demonstrates sovereign cloud principles and modern AI architectures. Feel free to explore, learn, and adapt for your own needs.
