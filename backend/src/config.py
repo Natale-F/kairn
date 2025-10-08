@@ -72,21 +72,6 @@ AVAILABLE_MODELS = [
             "quantization_level": "Q4_0",
         },
     },
-    {
-        "name": "mistral-small",
-        "model": "mistral-small",
-        "modified_at": "2024-01-01T00:00:00Z",
-        "size": 45678901,
-        "digest": "sha256:def456",
-        "details": {
-            "parent_model": "",
-            "format": "mistral",
-            "family": "mistral",
-            "families": ["mistral"],
-            "parameter_size": "7B",
-            "quantization_level": "Q4_0",
-        },
-    },
 ]
 
 # Validation
