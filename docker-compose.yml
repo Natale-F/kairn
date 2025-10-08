@@ -1,6 +1,25 @@
 services:
 
-  # Python Backend
+  # PostgreSQL Database for Open WebUI
+  postgres:
+    image: postgres:16-alpine
+    container_name: chatbot-postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-openwebui}
+      - POSTGRES_USER=${POSTGRES_USER:-openwebui}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-openwebui_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - chatbot-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openwebui}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python Backend (OpenAI-compatible API)
   backend:
     build:
       context: ./backend
@@ -10,7 +29,7 @@ services:
       - "8000:8000"
     environment:
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
-      - FRONTEND_URL=http://frontend:3000
+      - FRONTEND_URL=http://frontend:8080
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 10s
@@ -20,24 +39,49 @@ services:
       - chatbot-network
     restart: unless-stopped
 
-  # Next.js Frontend
+  # Open WebUI Frontend
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: chatbot-frontend
     ports:
-      - "3000:3000"
+      - "3000:8080"
     environment:
-      - NODE_ENV=production
-      - OLLAMA_URL=http://backend:8000
-      - NEXT_PUBLIC_OLLAMA_URL=http://localhost:8000
+      # Database Configuration
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-openwebui}:${POSTGRES_PASSWORD:-openwebui_password}@postgres:5432/${POSTGRES_DB:-openwebui}
+      
+      # Disable Ollama API (we use OpenAI-compatible API instead)
+      - ENABLE_OLLAMA_API=false
+      
+      # OpenAI API Configuration (points to your backend)
+      - ENABLE_OPENAI_API=true
+      - OPENAI_API_BASE_URLS=http://backend:8000/v1
+      - OPENAI_API_KEYS=sk-dummy-key-not-needed
+      
+      # Security
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY:-your-secret-key-change-in-production}
+      
+      # Disable telemetry
+      - SCARF_NO_ANALYTICS=true
+      - DO_NOT_TRACK=true
+      - ANONYMIZED_TELEMETRY=false
+    volumes:
+      - open_webui_data:/app/backend/data
     depends_on:
+      postgres:
+        condition: service_healthy
       backend:
         condition: service_healthy
     networks:
       - chatbot-network
     restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  open_webui_data:
+    driver: local
 
 networks:
   chatbot-network:

@@ -31,130 +31,156 @@ class TestHealthEndpoints:
 
 
 class TestModelsEndpoint:
-    """Test /api/tags endpoint"""
+    """Test /v1/models endpoint (OpenAI format)"""
 
     def test_list_models(self, client, mock_env):
-        """Test GET /api/tags returns available models"""
-        response = client.get("/api/tags")
+        """Test GET /v1/models returns available models"""
+        response = client.get("/v1/models")
 
         assert response.status_code == 200
         data = response.json()
 
-        assert "models" in data
-        assert isinstance(data["models"], list)
-        assert len(data["models"]) > 0
+        assert "data" in data
+        assert data["object"] == "list"
+        assert isinstance(data["data"], list)
+        assert len(data["data"]) > 0
 
-        # Check model structure
-        model = data["models"][0]
-        assert "name" in model
-        assert "model" in model
-        assert "details" in model
+        # Check model structure (OpenAI format)
+        model = data["data"][0]
+        assert "id" in model
+        assert "object" in model
+        assert model["object"] == "model"
+        assert "created" in model
+        assert "owned_by" in model
+
+    def test_models_alternative_endpoint(self, client, mock_env):
+        """Test GET /models also works (without /v1 prefix)"""
+        response = client.get("/models")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert "data" in data
+        assert data["object"] == "list"
 
     def test_models_include_mistral_variants(self, client, mock_env):
         """Test that all Mistral variants are included"""
-        response = client.get("/api/tags")
+        response = client.get("/v1/models")
         data = response.json()
 
-        model_names = [m["name"] for m in data["models"]]
-        assert "mistral-large" in model_names
-        assert "mistral-medium" in model_names
-        assert "mistral-small" in model_names
+        model_ids = [m["id"] for m in data["data"]]
+        assert "mistral-large" in model_ids
+        assert "mistral-medium" in model_ids
+        assert "mistral-small" in model_ids
 
 
-class TestGenerateEndpoint:
-    """Test /api/generate endpoint"""
-
-    def test_generate_streaming(self, client, mock_env):
-        """Test POST /api/generate with streaming"""
-        request_data = {"model": "mistral-small", "prompt": "Tell me a story", "stream": True}
-
-        response = client.post("/api/generate", json=request_data)
-
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "application/x-ndjson"
-
-        # Parse NDJSON response
-        lines = response.text.strip().split("\n")
-        chunks = [json.loads(line) for line in lines if line]
-
-        assert len(chunks) > 0
-
-        # Last chunk should have done=True
-        assert chunks[-1]["done"] is True
-
-        # Other chunks should have content
-        for chunk in chunks[:-1]:
-            assert chunk["done"] is False
-            assert "response" in chunk
-
-    def test_generate_validation_error(self, client, mock_env):
-        """Test generate with missing required fields"""
-        request_data = {
-            "model": "mistral-large"
-            # Missing 'prompt' field
-        }
-
-        response = client.post("/api/generate", json=request_data)
-        assert response.status_code == 422  # Validation error
-
-
-class TestChatEndpoint:
-    """Test /api/chat endpoint"""
+class TestChatCompletionsEndpoint:
+    """Test /v1/chat/completions endpoint (OpenAI format)"""
 
     def test_chat_streaming(self, client, mock_env):
-        """Test POST /api/chat with streaming"""
+        """Test POST /v1/chat/completions with streaming"""
         request_data = {
             "model": "mistral-small",
             "messages": [{"role": "user", "content": "How are you?"}],
             "stream": True,
         }
 
-        response = client.post("/api/chat", json=request_data)
+        response = client.post("/v1/chat/completions", json=request_data)
 
         assert response.status_code == 200
-        assert response.headers["content-type"] == "application/x-ndjson"
+        assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
 
-        # Parse NDJSON response
+        # Parse SSE response
         lines = response.text.strip().split("\n")
-        chunks = [json.loads(line) for line in lines if line]
+        data_lines = [line for line in lines if line.startswith("data: ")]
+
+        assert len(data_lines) > 0
+
+        # Check for [DONE] marker
+        assert data_lines[-1] == "data: [DONE]"
+
+        # Parse JSON chunks (excluding [DONE])
+        chunks = []
+        for line in data_lines[:-1]:
+            chunk_data = line[6:]  # Remove "data: " prefix
+            if chunk_data and not chunk_data.startswith("[DONE]"):
+                chunks.append(json.loads(chunk_data))
 
         assert len(chunks) > 0
 
-        # Last chunk should have done=True
-        assert chunks[-1]["done"] is True
-
-        # Check message format
+        # Check chunk format (OpenAI format)
         for chunk in chunks:
-            assert "message" in chunk
-            assert chunk["message"]["role"] == "assistant"
+            assert "id" in chunk
+            assert "object" in chunk
+            assert chunk["object"] == "chat.completion.chunk"
+            assert "model" in chunk
+            assert "choices" in chunk
+            assert len(chunk["choices"]) > 0
+            assert "index" in chunk["choices"][0]
+            assert "delta" in chunk["choices"][0]
 
+    def test_chat_non_streaming(self, client, mock_env):
+        """Test POST /v1/chat/completions without streaming"""
+        request_data = {
+            "model": "mistral-small",
+            "messages": [{"role": "user", "content": "Say hello"}],
+            "stream": False,
+        }
 
-class TestPullEndpoint:
-    """Test /api/pull endpoint (mock)"""
-
-    def test_pull_existing_model(self, client, mock_env):
-        """Test pulling an existing model"""
-        request_data = {"name": "mistral-large"}
-
-        response = client.post("/api/pull", json=request_data)
+        response = client.post("/v1/chat/completions", json=request_data)
 
         assert response.status_code == 200
         data = response.json()
 
-        assert data["status"] == "success"
-        assert "digest" in data
-        assert "total" in data
-        assert "completed" in data
+        # Check response format (OpenAI format)
+        assert "id" in data
+        assert "object" in data
+        assert data["object"] == "chat.completion"
+        assert "model" in data
+        assert data["model"] == "mistral-small"
+        assert "choices" in data
+        assert len(data["choices"]) > 0
 
-    def test_pull_nonexistent_model(self, client, mock_env):
-        """Test pulling a model that doesn't exist"""
-        request_data = {"name": "nonexistent-model"}
+        # Check choice structure
+        choice = data["choices"][0]
+        assert "index" in choice
+        assert choice["index"] == 0
+        assert "message" in choice
+        assert choice["message"]["role"] == "assistant"
+        assert "content" in choice["message"]
+        assert len(choice["message"]["content"]) > 0
+        assert "finish_reason" in choice
+        assert choice["finish_reason"] == "stop"
 
-        response = client.post("/api/pull", json=request_data)
+        # Check usage
+        assert "usage" in data
+        assert "prompt_tokens" in data["usage"]
+        assert "completion_tokens" in data["usage"]
+        assert "total_tokens" in data["usage"]
 
-        assert response.status_code == 404
+    def test_chat_alternative_endpoint(self, client, mock_env):
+        """Test POST /chat/completions also works (without /v1 prefix)"""
+        request_data = {
+            "model": "mistral-small",
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream": False,
+        }
+
+        response = client.post("/chat/completions", json=request_data)
+
+        assert response.status_code == 200
         data = response.json()
-        assert "error" in data
+        assert data["object"] == "chat.completion"
+
+    def test_chat_validation_error(self, client, mock_env):
+        """Test chat completions with missing required fields"""
+        request_data = {
+            "model": "mistral-large"
+            # Missing 'messages' field
+        }
+
+        response = client.post("/v1/chat/completions", json=request_data)
+        assert response.status_code == 422  # Validation error
 
 
 class TestCORS:
@@ -163,7 +189,7 @@ class TestCORS:
     def test_cors_headers(self, client, mock_env):
         """Test that CORS headers are set correctly"""
         response = client.options(
-            "/api/tags",
+            "/v1/models",
             headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "GET"},
         )
 

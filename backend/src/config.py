@@ -21,18 +21,23 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
-# CORS Origins
+# CORS Origins (allow Open WebUI on various ports)
 CORS_ORIGINS = [
-    "http://localhost:3000",
+    "http://localhost:3000",  # Open WebUI (mapped from 8080)
+    "http://localhost:8080",  # Open WebUI (direct)
     "http://localhost:3001",
     FRONTEND_URL,
+    "*",  # Allow all origins for Ollama compatibility
 ]
 
 # Model Mapping (Mistral sovereign models)
 MODEL_MAP = {
     "mistral-large": "mistral-large-latest",
+    "mistral-large:latest": "mistral-large-latest",
     "mistral-medium": "mistral-medium-latest",
+    "mistral-medium:latest": "mistral-medium-latest",
     "mistral-small": "mistral-small-latest",
+    "mistral-small:latest": "mistral-small-latest",
 }
 
 # Default models exposed to frontend (Ollama format)

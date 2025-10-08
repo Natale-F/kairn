@@ -72,10 +72,23 @@ def mock_mistral_model():
 @pytest.fixture
 def mock_llm_service(mock_agent):
     """Mock LLMService for API tests"""
-    with patch("src.api.ollama_routes.LLMService") as mock_service_class:
+    with patch("services.llm_service.LLMService") as mock_service_class:
         mock_instance = MagicMock()
-        mock_instance.generate_completion = mock_agent.run
-        mock_instance.stream_completion = mock_agent.run_stream().stream_text
+
+        # Mock generate_completion to return the mocked data
+        async def mock_generate(*args, **kwargs):
+            return "Mocked LLM response"
+
+        mock_instance.generate_completion = AsyncMock(side_effect=mock_generate)
+
+        # Mock stream_completion
+        async def mock_stream(*args, **kwargs):
+            chunks = ["Hello", " ", "World", "!"]
+            for chunk in chunks:
+                yield chunk
+
+        mock_instance.stream_completion = mock_stream
+
         mock_service_class.return_value = mock_instance
         yield mock_service_class
 

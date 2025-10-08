@@ -4,7 +4,7 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.ollama_routes import router as ollama_router
+from api.openai_routes import router as openai_router
 from config import CORS_ORIGINS, MISTRAL_API_KEY
 from core.logger import setup_logging
 
@@ -15,7 +15,7 @@ logger = structlog.get_logger(__name__)
 # Create FastAPI app
 app = FastAPI(
     title="French Sovereign Chatbot Backend",
-    description="Ollama-compatible API for Mistral AI",
+    description="OpenAI-compatible API for Mistral AI",
     version="1.0.0",
 )
 
@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(ollama_router)
+app.include_router(openai_router)
 
 logger.info(
     "FastAPI application initialized",
@@ -43,7 +43,7 @@ async def root():
     """Health check endpoint"""
     return {
         "status": "ok",
-        "service": "French Sovereign Chatbot Backend (Ollama-compatible)",
+        "service": "French Sovereign Chatbot Backend (OpenAI-compatible)",
         "version": "1.0.0",
         "mistral_api_configured": bool(MISTRAL_API_KEY),
     }
