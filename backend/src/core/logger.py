@@ -51,4 +51,4 @@ elif os.getenv("LOG_LEVEL") == "ERROR":
 elif os.getenv("LOG_LEVEL") == "CRITICAL":
     setup_logging(level=logging.CRITICAL)
 else:
-    setup_logging(level=logging.DEBUG)
+    setup_logging(level=logging.INFO)

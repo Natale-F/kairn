@@ -50,7 +50,11 @@ async def generate(request: GenerateRequest):
 
     # Streaming response
     async def generate_stream() -> AsyncGenerator[str, None]:
+        chunk_count = 0
+        total_chars = 0
         try:
+            logger.info("Starting generate stream", model=request.model)
+
             async for content in service.stream_completion(
                 messages=messages,
                 model=request.model,
@@ -59,8 +63,15 @@ async def generate(request: GenerateRequest):
             ):
                 # Check if it's an error
                 if content.startswith("{") and "error" in content:
+                    logger.error("Stream error detected", error=content)
                     yield content + "\n"
                     return
+
+                chunk_count += 1
+                total_chars += len(content)
+
+                if chunk_count % 20 == 0:
+                    logger.debug("Streaming progress", chunks=chunk_count, total_chars=total_chars)
 
                 # Send Ollama-format chunk
                 yield (
@@ -76,6 +87,7 @@ async def generate(request: GenerateRequest):
                 )
 
             # Send final done message
+            logger.info("Generate stream completed", chunks=chunk_count, total_chars=total_chars)
             yield (
                 json.dumps(
                     {
@@ -89,6 +101,9 @@ async def generate(request: GenerateRequest):
             )
 
         except Exception as e:
+            logger.error(
+                "Generate stream exception", error=str(e), chunks_sent=chunk_count, exc_info=True
+            )
             yield json.dumps({"error": f"Error: {str(e)}"}) + "\n"
 
     return StreamingResponse(generate_stream(), media_type="application/x-ndjson")
@@ -126,7 +141,11 @@ async def chat(request: ChatRequest):
 
     # Streaming response
     async def chat_stream() -> AsyncGenerator[str, None]:
+        chunk_count = 0
+        total_chars = 0
         try:
+            logger.info("Starting chat stream", model=request.model, messages_count=len(messages))
+
             async for content in service.stream_completion(
                 messages=messages,
                 model=request.model,
@@ -135,8 +154,16 @@ async def chat(request: ChatRequest):
             ):
                 # Check if it's an error
                 if content.startswith("{") and "error" in content:
+                    logger.error("Stream error detected", error=content)
                     yield content + "\n"
                     return
+
+                chunk_count += 1
+                total_chars += len(content)
+
+                # Log progress every 20 chunks
+                if chunk_count % 20 == 0:
+                    logger.debug("Streaming progress", chunks=chunk_count, total_chars=total_chars)
 
                 # Send Ollama-format chunk
                 yield (
@@ -152,6 +179,7 @@ async def chat(request: ChatRequest):
                 )
 
             # Send final done message
+            logger.info("Chat stream completed", chunks=chunk_count, total_chars=total_chars)
             yield (
                 json.dumps(
                     {
@@ -165,6 +193,9 @@ async def chat(request: ChatRequest):
             )
 
         except Exception as e:
+            logger.error(
+                "Chat stream exception", error=str(e), chunks_sent=chunk_count, exc_info=True
+            )
             yield json.dumps({"error": f"Error: {str(e)}"}) + "\n"
 
     return StreamingResponse(chat_stream(), media_type="application/x-ndjson")
