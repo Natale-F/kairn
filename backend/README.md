@@ -1,160 +1,224 @@
-# Backend - French Sovereign Chatbot
+# Backend - European/Open-Source Chatbot API
 
-Backend FastAPI avec API compatible Ollama pour Mistral AI.
+FastAPI backend with Ollama-compatible API supporting European and open-source LLM providers.
+
+## 🌍 Supported Providers
+
+Currently supported:
+- **Mistral AI** 🇫🇷 (France) - Default provider
+
+Planned:
+- **HuggingFace** 
+- **Ollama** (Local models)
 
 ## 🏗️ Architecture
 
 ```
 backend/
-├── api/                    # Routes API
-│   ├── __init__.py
-│   └── ollama_routes.py   # Routes Ollama-compatible
-├── models/                 # Modèles Pydantic
-│   ├── __init__.py
-│   └── schemas.py         # Schémas de validation
-├── services/               # Logique métier
-│   ├── __init__.py
-│   └── mistral_service.py # Service Mistral AI
-├── config.py              # Configuration centralisée
-├── main.py                # Point d'entrée FastAPI
-├── requirements.txt       # Dépendances Python
-└── Dockerfile            # Image Docker optimisée
+├── api/                    # API Routes
+│   └── ollama_routes.py   # Ollama-compatible endpoints
+├── models/                 # Pydantic Models
+│   └── schemas.py         # Request/Response validation
+├── services/               # Business Logic
+│   └── llm_service.py     # Generic LLM service (Pydantic AI)
+├── config.py              # Centralized configuration
+├── main.py                # FastAPI entry point
+└── requirements.txt       # Python dependencies
 ```
 
-## 🚀 Démarrage rapide
+## Quick Start
 
-### Avec Docker (recommandé)
+### With Docker (Recommended)
 
 ```bash
-# Depuis la racine du projet
+# From project root
 docker-compose up -d backend
 ```
 
-### Mode développement
+### Development Mode
 
 ```bash
 cd backend
 
-# Créer un environnement virtuel
+# Create virtual environment
 python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-.\venv\Scripts\activate   # Windows
+source venv/bin/activate
 
-# Installer les dépendances
+# Install dependencies
 pip install -r requirements.txt
 
-# Configurer l'environnement
+# Configure environment
 export MISTRAL_API_KEY=your_key_here
+export LLM_PROVIDER=mistral
 
-# Lancer le serveur
+# Start server
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## 📝 Variables d'environnement
+## Environment Variables
 
-| Variable | Description | Requis |
-|----------|-------------|--------|
-| `MISTRAL_API_KEY` | Clé API Mistral AI | ✅ Oui |
-| `FRONTEND_URL` | URL du frontend pour CORS | ❌ Non (default: localhost:3000) |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `LLM_PROVIDER` | LLM provider to use | `mistral` | ❌ |
+| `MISTRAL_API_KEY` | Mistral AI API key | - | ✅ (if using Mistral) |
+| `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:3000` | ❌ |
 
-## 🔌 Endpoints
+Get your Mistral API key: https://console.mistral.ai/
+
+## API Endpoints
 
 ### Health Check
-- `GET /` - Status général
-- `GET /health` - Health check détaillé
+- `GET /` - Service status
+- `GET /health` - Detailed health check
 
-### Ollama-compatible API
-- `GET /api/tags` - Liste des modèles
-- `POST /api/generate` - Génération de texte
-- `POST /api/chat` - Chat conversationnel
-- `POST /api/pull` - Mock endpoint
+### Ollama-Compatible API
+- `GET /api/tags` - List available models
+- `POST /api/generate` - Text generation (streaming/non-streaming)
+- `POST /api/chat` - Conversational chat (streaming/non-streaming)
+- `POST /api/pull` - Mock endpoint (models via API)
 
-**Documentation interactive** :
-- Swagger UI : http://localhost:8000/docs
-- ReDoc : http://localhost:8000/redoc
+**Interactive Documentation:**
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-## 🧪 Tests
+## Testing
+
+### Automated Tests
 
 ```bash
-# Test de santé
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+make test
+# or
+pytest tests
+
+# Run with coverage report
+make test-cov
+
+# Run specific test suites
+make test-unit    # Unit tests only
+make test-api     # API tests only
+
+# Code quality
+make lint         # Check code with ruff
+make format       # Format code with ruff
+make check        # Lint + tests
+```
+
+**Test Coverage:**
+- ✅ LLM Service (unit tests)
+- ✅ API Endpoints (integration tests)
+- ✅ Error handling and validation
+- ✅ Streaming and non-streaming responses
+
+See `tests/README.md` for detailed testing documentation.
+
+### Manual Testing
+
+```bash
+# Health check
 curl http://localhost:8000/
 
-# Liste des modèles
+# List models
 curl http://localhost:8000/api/tags
 
-# Test chat
+# Chat test (streaming)
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{
     "model": "mistral-large",
-    "messages": [{"role": "user", "content": "Hello!"}],
+    "messages": [{"role": "user", "content": "Bonjour!"}],
     "stream": true
+  }'
+
+# Chat test (non-streaming)
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "mistral-small",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": false
   }'
 ```
 
-## 🏭 Production
+## Production
 
-### Dockerfile optimisé
-
-Le Dockerfile utilise :
-- **Multi-stage build** pour réduire la taille
-- **Layer caching** optimal (requirements d'abord)
-- **Non-root user** pour la sécurité
-- **Health checks** configurés
-
-### Build manuel
+### Docker Build
 
 ```bash
 docker build -t chatbot-backend .
 docker run -d -p 8000:8000 \
   -e MISTRAL_API_KEY=your_key \
+  -e LLM_PROVIDER=mistral \
   chatbot-backend
 ```
 
-## 🔧 Configuration
+### Features
+- **Multi-stage build** for smaller image size
+- **Layer caching** optimization
+- **Non-root user** for security
+- **Health checks** configured
 
-Tous les paramètres sont centralisés dans `config.py` :
-- URLs des APIs
-- Mapping des modèles
-- CORS origins
-- Modèles disponibles
+## Adding a New Provider
 
-## 📊 Performance
+To add a new European/open-source provider:
 
-- **Workers** : 1 par défaut (ajuster selon CPU)
-- **Timeout** : 60s pour Mistral API
-- **Streaming** : Support complet SSE → NDJSON
+1. **Add API key to `config.py`:**
+```python
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+```
 
-## 🐛 Debugging
+2. **Update `LLMService` in `services/llm_service.py`:**
+```python
+def _get_model_instance(self, model_name: str):
+    if self.provider == "huggingface":
+        from pydantic_ai.models.huggingface import HuggingFaceModel
+        return HuggingFaceModel(actual_model)
+```
+
+3. **Set environment variable:**
+```bash
+export LLM_PROVIDER=huggingface
+export HUGGINGFACE_API_KEY=your_key
+```
+
+## Performance
+
+- **Async/await** throughout for high concurrency
+- **Agent caching** per provider:model
+- **Streaming support** for real-time responses
+- **Pydantic AI** for provider abstraction
+
+## Debugging
 
 ```bash
-# Logs détaillés
+# Detailed logs
 uvicorn main:app --log-level debug
 
-# Recharger automatiquement
+# Auto-reload on changes
 uvicorn main:app --reload
 
-# Tester sans Docker
+# Direct Python execution
 python main.py
 ```
 
-## 📦 Dépendances principales
+## Key Dependencies
 
-- `fastapi` - Framework web
-- `uvicorn` - Serveur ASGI
-- `httpx` - Client HTTP async
-- `pydantic` - Validation de données
-- `python-dotenv` - Variables d'environnement
+- `fastapi` - Modern web framework
+- `uvicorn` - ASGI server
+- `pydantic-ai` - LLM provider abstraction
+- `pydantic` - Data validation
+- `python-dotenv` - Environment management
 
-## 🤝 Contribution
+## Code Structure
 
-Structure à respecter :
-1. **api/** - Routes uniquement, pas de logique
-2. **services/** - Logique métier isolée
-3. **models/** - Validation avec Pydantic
-4. **config.py** - Configuration centralisée
+1. **api/** - Route handlers only, no business logic
+2. **services/** - Isolated business logic (LLM interactions)
+3. **models/** - Pydantic schemas for validation
+4. **config.py** - Single source of truth for configuration
 
-## 📄 Licence
+## License
 
-Voir LICENSE à la racine du projet.
+See LICENSE at project root.

@@ -1,12 +1,24 @@
 """Configuration centralisée de l'application"""
+
 import os
+
+import structlog
 from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = structlog.get_logger(__name__)
+
+# LLM Provider Configuration (European/Open-Source models)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "mistral")  # Default: Mistral AI (France)
+
 # API Configuration
 MISTRAL_API_URL = "https://api.mistral.ai/v1"
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+# Future providers:
+# HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+# OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 # CORS Origins
@@ -37,8 +49,8 @@ AVAILABLE_MODELS = [
             "family": "mistral",
             "families": ["mistral"],
             "parameter_size": "70B",
-            "quantization_level": "Q4_0"
-        }
+            "quantization_level": "Q4_0",
+        },
     },
     {
         "name": "mistral-medium",
@@ -52,8 +64,8 @@ AVAILABLE_MODELS = [
             "family": "mistral",
             "families": ["mistral"],
             "parameter_size": "22B",
-            "quantization_level": "Q4_0"
-        }
+            "quantization_level": "Q4_0",
+        },
     },
     {
         "name": "mistral-small",
@@ -67,11 +79,11 @@ AVAILABLE_MODELS = [
             "family": "mistral",
             "families": ["mistral"],
             "parameter_size": "7B",
-            "quantization_level": "Q4_0"
-        }
-    }
+            "quantization_level": "Q4_0",
+        },
+    },
 ]
 
 # Validation
 if not MISTRAL_API_KEY:
-    print("⚠️  WARNING: MISTRAL_API_KEY is not set in .env file")
+    logger.warning("MISTRAL_API_KEY not configured", env_file=".env")
