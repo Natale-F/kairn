@@ -51,9 +51,12 @@ jobs:
       - name: Run tests
         run: |
           pytest backend/tests/ --cov=backend/src --cov-report=xml
+        env:
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         if: matrix.python-version == '3.12'
         with:
           file: ./backend/coverage.xml
+        

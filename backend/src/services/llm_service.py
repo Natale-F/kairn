@@ -7,6 +7,7 @@ from pydantic_ai import Agent
 from pydantic_ai.models.mistral import MistralModel
 
 from config import LLM_PROVIDER, MISTRAL_API_KEY, MODEL_MAP
+from prompts import get_system_prompt
 
 logger = structlog.get_logger(__name__)
 
@@ -19,8 +20,9 @@ class LLMService:
     - Future: HuggingFace, local Ollama, etc.
     """
 
-    def __init__(self, provider: str = None):
+    def __init__(self, provider: str = None, system_prompt: str = None):
         self.provider = provider or LLM_PROVIDER
+        self.system_prompt = system_prompt or get_system_prompt("default")
         self._validate_provider()
         self._agents = {}  # Cache agents by model
         logger.info("LLMService initialized", provider=self.provider)
@@ -48,7 +50,11 @@ class LLMService:
         if cache_key not in self._agents:
             logger.debug("Creating new agent", provider=self.provider, model=model_name)
             model = self._get_model_instance(model_name)
-            self._agents[cache_key] = Agent(model, retries=2)
+            self._agents[cache_key] = Agent(
+                model, 
+                system_prompt=self.system_prompt,
+                retries=2
+            )
         else:
             logger.debug("Using cached agent", provider=self.provider, model=model_name)
 
